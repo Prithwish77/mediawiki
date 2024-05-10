@@ -1,0 +1,33 @@
+# Use a Java base image
+FROM openjdk:11-jre-slim
+
+# Set environment variables for MediaWiki
+ENV MEDIAWIKI_VERSION=1.36.1 \
+    MEDIAWIKI_DB_HOST=db \
+    MEDIAWIKI_DB_PORT=3306 \
+    MEDIAWIKI_DB_NAME=mediawiki \
+    MEDIAWIKI_DB_USER=root \
+    MEDIAWIKI_DB_PASSWORD=example_password
+
+# Install MediaWiki and required packages
+RUN apt-get update && \
+    apt-get install -y \
+    curl \
+    tar \
+    gzip \
+    && curl -o mediawiki.tar.gz -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz" \
+    && tar -xzvf mediawiki.tar.gz -C /var/www/html/ \
+    && mv /var/www/html/mediawiki-${MEDIAWIKI_VERSION} /var/www/html/mediawiki \
+    && rm mediawiki.tar.gz \
+    && chown -R www-data:www-data /var/www/html/mediawiki \
+    && apt-get purge -y --auto-remove curl tar gzip
+
+# Expose MediaWiki port
+EXPOSE 80
+
+# Start MediaWiki
+CMD ["java", "-jar", "/path/to/your/mediawiki.jar", "--db-host=${MEDIAWIKI_DB_HOST}", "--db-port=${MEDIAWIKI_DB_PORT}", "--db-name=${MEDIAWIKI_DB_NAME}", "--db-user=${MEDIAWIKI_DB_USER}", "--db-password=${MEDIAWIKI_DB_PASSWORD}"]
+
+# Run the imgae as conatainer
+
+docker run -e MEDIAWIKI_DB_HOST=<db_host> -e MEDIAWIKI_DB_PORT=<db_port> -e MEDIAWIKI_DB_NAME=<db_name> -e MEDIAWIKI_DB_USER=<db_user> -e MEDIAWIKI_DB_PASSWORD=<db_password> -p 8080:80 mediawiki-java
